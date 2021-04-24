@@ -29,10 +29,24 @@ const submitWorkload: AppEpic = (action$, state$) => (
   )
 );
 
+const cancelWorkload: AppEpic = (action$, state$) => (
+  action$.pipe(
+    filter(isActionOf(workloadsActions.cancel)),
+    mergeMap(async (action) => {
+      const currentWorkloadStatus = await workloadService.checkStatus(action.payload)
+      if (currentWorkloadStatus.status === 'WORKING') {
+        const cancelledCall = await workloadService.cancel(action.payload)
+        return workloadsActions.updateStatus(cancelledCall) 
+      }
+      return workloadsActions.updateStatus(currentWorkloadStatus) 
+    })
+  )
+);
 
 export const epics = combineEpics(
   logWorkloadSubmissions,
-  submitWorkload
+  submitWorkload,
+  cancelWorkload
 );
 
 export default epics;
