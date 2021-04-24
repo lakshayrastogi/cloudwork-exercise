@@ -6,7 +6,9 @@ import { RootAction, RootState } from '../reducer';
 import * as workloadsActions from './actions';
 import { WorkloadService } from './services'
 
-const workloadService = new WorkloadService
+const workloadService = new WorkloadService()
+const timer = (time: number) => new Promise(resolve => setTimeout(() => resolve(), time)) 
+const createdTimes: { [key: string]: number } = {}
 
 type AppEpic = Epic<RootAction, RootAction, RootState>;
 
@@ -24,6 +26,7 @@ const submitWorkload: AppEpic = (action$, state$) => (
   	filter(isActionOf(workloadsActions.submit)),
   	mergeMap(async (action) => {
   		const createdCall = await workloadService.create(action.payload)
+  		createdTimes[`${createdCall.id}`] = Date.now()
   		return workloadsActions.created(createdCall)
   	})
   )
@@ -43,10 +46,25 @@ const cancelWorkload: AppEpic = (action$, state$) => (
   )
 );
 
+const createWorkload: AppEpic = (action$, state$) => (
+  action$.pipe(
+    filter(isActionOf(workloadsActions.created)),
+    mergeMap(async (action) => {
+      const countDownAmount = <any> action.payload.completeDate - createdTimes[action.payload.id]
+      delete createdTimes[action.payload.id]
+      await timer(countDownAmount)
+      const currentWorkloadStatus = await workloadService.checkStatus(action.payload)
+      return workloadsActions.updateStatus(currentWorkloadStatus) 
+    })
+  )
+);
+
+
 export const epics = combineEpics(
   logWorkloadSubmissions,
   submitWorkload,
-  cancelWorkload
+  cancelWorkload,
+  createWorkload
 );
 
 export default epics;
