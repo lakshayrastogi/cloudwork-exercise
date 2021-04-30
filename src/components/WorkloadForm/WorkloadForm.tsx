@@ -30,11 +30,11 @@ class WorkloadForm extends React.PureComponent<WorkloadFormProps, WorkloadFormSt
 
   render() {
     return (
-      <form>
-        <h2>Create workload</h2>
-        
+      <form className="addBorder">
+        <h2 className="removeMargin">Create workload</h2>
+        <br />
         <div>
-          <label>
+          <label className="complexityLabel">
             Complexity: {this.state.complexity}
             <br />
             <input 
@@ -46,9 +46,9 @@ class WorkloadForm extends React.PureComponent<WorkloadFormProps, WorkloadFormSt
             />
           </label>
         </div>
-
+        <br />
         <div>
-          <button onClick={this.handleSubmit} type="submit">Start work</button>
+          <button className="createWork" onClick={this.handleSubmit} type="submit">Start work</button>
         </div>
       </form>
     );
